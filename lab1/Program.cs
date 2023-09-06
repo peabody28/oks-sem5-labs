@@ -43,12 +43,11 @@ namespace lab1
             var serialPortNames = SerialPort.GetPortNames();
 
             int i = 1;
-            for(; i < serialPortNames.Length; i++)
+            for(; i < serialPortNames.Length; i+=2)
             {
-                var portName = serialPortNames[i];
                 try
                 {
-                    using (var node = new Node(portName))
+                    using (var node = new Node(serialPortNames[i]))
                     {
                         break;
                     }
@@ -59,7 +58,23 @@ namespace lab1
                 }
             }
 
-            return (serialPortNames[i], serialPortNames[i + 1]);
+            int j = serialPortNames.Length - 1;
+            for (; j > i; j-=2)
+            {
+                try
+                {
+                    using (var node = new Node(serialPortNames[j]))
+                    {
+                        break;
+                    }
+                }
+                catch
+                {
+
+                }
+            }
+
+            return (serialPortNames[i], serialPortNames[j]);
         }
 
         private static void StartConsumer(string portName)
