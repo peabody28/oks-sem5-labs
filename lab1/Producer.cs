@@ -1,5 +1,6 @@
-﻿using System.IO.Ports;
-using System.Text;
+﻿using lab1.Builders;
+using lab1.Extensions;
+using System.IO.Ports;
 
 namespace lab1
 {
@@ -15,14 +16,17 @@ namespace lab1
             while(true)
             {
                 var data = Console.ReadLine();
-                
-                var bytes = Encoding.ASCII.GetBytes(data);
 
-                var valueBytes = bytes.Append((byte)0).ToArray();
+                var packages = PackageBuilder.Build(data, serialPort.GetPortNumber());
 
-                serialPort.Write(valueBytes, 0, valueBytes.Length);
+                foreach(var package in packages)
+                {
+                    var packageBytes = package.ToByteArray();
 
-                Console.WriteLine($"{valueBytes.Length} bytes sended");
+                    serialPort.Write(packageBytes, 0, packageBytes.Length);
+
+                    Console.WriteLine($"{packageBytes.Length} bytes sended");
+                }   
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.IO.Ports;
+﻿using lab1.Builders;
+using System.IO.Ports;
 using System.Text;
 
 namespace lab1
@@ -19,14 +20,15 @@ namespace lab1
 
         private void OutputData(object sender, SerialDataReceivedEventArgs e)
         {
-            var buffer = new byte[1024];
-            serialPort.Read(buffer, 0, 1024);
+            var buffer = new byte[11];
+            
+            serialPort.Read(buffer, 0, 11);
 
-            var valueBuffer = buffer.TakeWhile(b => b != 0).ToArray();
+            var package = PackageBuilder.Parse(buffer);
 
-            var data = Encoding.ASCII.GetString(valueBuffer);
+            var data = Encoding.ASCII.GetString(package.data);
 
-            Console.Write(data);
+            Console.WriteLine(data);
         }
     }
 }
