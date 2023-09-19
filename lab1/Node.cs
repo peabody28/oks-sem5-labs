@@ -1,4 +1,5 @@
-﻿using System.IO.Ports;
+﻿using lab1.Constants;
+using System.IO.Ports;
 
 namespace lab1
 {
@@ -11,8 +12,7 @@ namespace lab1
             serialPort = new SerialPort(serialPortName, 19200, parity, 8, StopBits.One);
             serialPort.Open();
 
-            serialPort.ReadTimeout = 500;
-            serialPort.WriteTimeout = 500;
+            serialPort.ReadTimeout = TransferConstants.ReadTimeout;
         }
 
         public virtual void Do()

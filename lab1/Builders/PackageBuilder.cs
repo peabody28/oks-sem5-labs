@@ -41,32 +41,13 @@ namespace lab1.Builders
 
         public static Package Parse(byte[] packageData)
         {
-            var stuffedData = packageData.Skip(3).ToArray();
+            var stuffedData = packageData.Skip(3).Take(dataSize).ToArray();
             var package = new Package();
 
             package.flag = packageData[0];
-            Log(stuffedData);
-            package.data = GetUnstuffedData(stuffedData); 
+            package.data = stuffedData; 
 
             return package;
-        }
-
-        private static byte[] GetUnstuffedData(byte[] stuffedData)
-        {
-            return ByteStuffing.Decode(stuffedData);
-        }
-
-        private static void Log(byte[] data)
-        {
-            Console.Write("staffed data is: ");
-
-            foreach (var b in data)
-            {
-                Console.Write(b);
-                Console.Write(" ");
-            }
-
-            Console.WriteLine();
         }
     }
 }
