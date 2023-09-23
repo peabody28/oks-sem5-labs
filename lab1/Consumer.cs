@@ -48,6 +48,8 @@ namespace lab1
 
             foreach (var package in packages)
             {
+                RepairPackageIfRequired(package);
+
                 dataBytes.AddRange(package.data);
             }
 
@@ -56,6 +58,21 @@ namespace lab1
             var unstaffedData = ByteStuffing.Decode(dataBytes.ToArray());
 
             return Encoding.ASCII.GetString(unstaffedData);
+        }
+
+        private static void RepairPackageIfRequired(Package package)
+        {
+            var alg = new CyclicEncoding();
+            var expectedFcs = alg.GetCrc8(package.data);
+
+            Console.WriteLine($"Expected fcs = {expectedFcs}, package.fcs = {package.fcs}");
+
+            if (!expectedFcs.Equals(package.fcs) && alg.TryFindErrorBitNumber(package.data, package.fcs, out var errorIndex))
+            {
+                package.data[errorIndex.Item1] ^= (byte)(1 << errorIndex.Item2);
+                
+                Console.WriteLine($"Error on ({errorIndex.Item1}, {errorIndex.Item2}) fixed");
+            }
         }
 
         private static void Log(byte[] data)

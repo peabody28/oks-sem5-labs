@@ -1,5 +1,5 @@
 ﻿using lab1.Builders;
-using lab1.Constants;
+using lab1.Data;
 using lab1.Extensions;
 using System.IO.Ports;
 
@@ -22,6 +22,8 @@ namespace lab1
 
                 foreach(var package in packages)
                 {
+                    SimulateError(package);
+
                     var packageBytes = package.ToByteArray();
 
                     serialPort.Write(packageBytes, 0, packageBytes.Length);
@@ -29,6 +31,18 @@ namespace lab1
                     Console.WriteLine($"{packageBytes.Length} bytes sended");
                 }   
             }
+        }
+
+        private static void SimulateError(Package package)
+        {
+            var randomByteIndex = new Random().Next(0, package.data.Length - 1);
+            var randomBitIndex = new Random().Next(0, 7);
+
+            var randomByte = package.data[randomByteIndex];
+            package.data[randomByteIndex] |= (byte)(1 << randomBitIndex);
+
+            if((randomByte ^ package.data[randomByteIndex]) != 0)
+                Console.WriteLine($"{randomByteIndex} data byte, {randomBitIndex} bit setted to 1");
         }
     }
 }
