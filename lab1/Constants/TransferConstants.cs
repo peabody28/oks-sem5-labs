@@ -2,6 +2,6 @@
 {
     internal class TransferConstants
     {
-        public const int ReadTimeout = 100;
+        public const int ReadTimeout = 200;
     }
 }

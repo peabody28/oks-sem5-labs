@@ -21,5 +21,20 @@
 
             return bytes.ToArray(); 
         }
+
+        public Package Copy()
+        {
+            byte[] copiedData = new byte[7];
+            data.CopyTo(copiedData, 0);
+
+            return new Package
+            {
+                flag = flag,
+                destinationAddress = destinationAddress,
+                sourceAddress = sourceAddress,
+                data = copiedData,
+                fcs = fcs
+            };
+        }
     }
 }

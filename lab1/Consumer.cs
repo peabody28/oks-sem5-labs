@@ -1,5 +1,6 @@
 ﻿using lab1.Algorithms;
 using lab1.Builders;
+using lab1.Constants;
 using lab1.Data;
 using System.IO.Ports;
 using System.Text;
@@ -30,7 +31,13 @@ namespace lab1
                 while (serialPort.Read(buffer, 0, 11) != 0)
                 {
                     var package = PackageBuilder.Parse(buffer);
-                    packages.Add(package);
+                    if(package.flag.Equals(PackageConstants.JamFlag))
+                    {
+                        Console.WriteLine("Jam-package recieved!");
+                        packages.RemoveAt(packages.Count - 1);
+                    }
+                    else
+                        packages.Add(package);
                 }
             }
             catch(TimeoutException)

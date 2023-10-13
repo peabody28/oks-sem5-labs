@@ -1,4 +1,5 @@
 ﻿using lab1.Algorithms;
+using lab1.Constants;
 using lab1.Data;
 using System.Text;
 
@@ -34,6 +35,18 @@ namespace lab1.Builders
             }
 
             return packages;
+        }
+
+        public static Package BuildJam()
+        {
+            var stuffedData = GetStuffedData(new byte[6] { 1,2,3,4,5,6 });
+
+            return new Package
+            {
+                flag = PackageConstants.JamFlag,
+                data = stuffedData,
+                fcs = new CyclicEncoding().GetCrc8(stuffedData)
+            };
         }
 
         private static byte[] GetStuffedData(byte[] data)
