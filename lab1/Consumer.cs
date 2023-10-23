@@ -1,5 +1,6 @@
 ﻿using lab1.Algorithms;
 using lab1.Builders;
+using lab1.Constants;
 using lab1.Data;
 using System.IO.Ports;
 using System.Text;
@@ -8,9 +9,17 @@ namespace lab1
 {
     public class Consumer : Node
     {
-        public Consumer(string serialPortName) : base(serialPortName)
+        private readonly TokenRingPackageBuilder tokenRingPackageBuilder;
+
+        private readonly List<Package> packages;
+
+        public Consumer(string serialPortName, NodeRoot nodeRoot) : base(serialPortName, nodeRoot)
         {
+            tokenRingPackageBuilder = new TokenRingPackageBuilder();
+
             serialPort.DataReceived += new SerialDataReceivedEventHandler(OutputData);
+
+            packages = new List<Package>();
         }
 
         public override void Do()
@@ -22,22 +31,30 @@ namespace lab1
 
         private void OutputData(object sender, SerialDataReceivedEventArgs e)
         {
-            var buffer = new byte[11];
+            var buffer = new byte[TransferConstants.PackageLen];
 
-            var packages = new List<Package>();
-            try
+            while (serialPort.Read(buffer, 0, TransferConstants.PackageLen) != 0)
             {
-                while (serialPort.Read(buffer, 0, 11) != 0)
+                var package = tokenRingPackageBuilder.Parse(buffer);
+
+                if (!package.accessControl.isToken && package.destinationAddress.Equals(serialPortNumber))
                 {
-                    var package = PackageBuilder.Parse(buffer);
                     packages.Add(package);
-                }
-            }
-            catch(TimeoutException)
-            {
-                var data = GetData(packages);
 
-                Console.WriteLine(data);
+                    package.frameStatus.isRecieved = true;
+                    package.frameStatus.isCopied = true;
+                    package.accessControl.isToken = false;
+
+                    if (package.flag.Equals(TransferConstants.LastPackageFlag)) // end of data packages
+                    {
+                        var data = GetData(packages);
+                        Console.WriteLine(data);
+                        packages.Clear();
+                    }
+                }
+
+                if(!package.accessControl.isToken || !package.sourceAddress.Equals(serialPortNumber))
+                    nodeRoot.sendQueue.Enqueue(package);
             }
         }
 

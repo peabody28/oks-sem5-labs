@@ -7,29 +7,73 @@ namespace lab1
 {
     public class Producer : Node
     {
-        public Producer(string serialPortName, Parity parity = Parity.None) : base(serialPortName, parity)
+        private readonly TokenRingPackageBuilder tokenRingPackageBuilder;
+
+        public readonly bool isMonitor;
+
+        public Producer(string serialPortName, NodeRoot nodeRoot, bool isMonitor, Parity parity = Parity.None) : base(serialPortName, nodeRoot, parity)
         {
+            this.isMonitor = isMonitor;
+            tokenRingPackageBuilder = new TokenRingPackageBuilder();
         }
 
         public override void Do()
         {
             base.Do();
+
+            Task.Run(() => ProcessQueue());
+
+            if (isMonitor)
+                Task.Run(() => Monitoring());
+
             while(true)
             {
+                Console.Write("input destination: ");
+                var destination = Convert.ToInt32(Console.ReadLine());
                 var data = Console.ReadLine();
 
-                var packages = PackageBuilder.Build(data, serialPort.GetPortNumber());
+                var packages = tokenRingPackageBuilder.Build(destination, data, serialPort.GetPortNumber(), null, null);
 
                 foreach(var package in packages)
                 {
-                    SimulateError(package);
+                    nodeRoot.sendQueue.Enqueue(package);
+                }   
+            }
+        }
+
+        private void ProcessQueue()
+        {
+            while(true)
+            {
+                if(nodeRoot.sendQueue.Any())
+                {
+                    var package = nodeRoot.sendQueue.Dequeue() as TokenRingPackage;
+
+                    //SimulateError(package);
 
                     var packageBytes = package.ToByteArray();
 
                     serialPort.Write(packageBytes, 0, packageBytes.Length);
 
-                    Console.WriteLine($"{packageBytes.Length} bytes sended");
-                }   
+                    if(!package.accessControl.isToken)
+                        Console.WriteLine($"{packageBytes.Length} bytes sended");
+                }
+            }
+        }
+
+        private void Monitoring()
+        {
+            while (true)
+            {
+                var accessControl = new AccessControl();
+                accessControl.isMonitor = isMonitor;
+                accessControl.isToken = true;
+
+                var tokenPackage = tokenRingPackageBuilder.Build(0, string.Empty, serialPortNumber, accessControl, null).First();
+
+                nodeRoot.sendQueue.Enqueue(tokenPackage);
+
+                Thread.Sleep(1000);
             }
         }
 

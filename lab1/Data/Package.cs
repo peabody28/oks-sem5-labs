@@ -1,6 +1,6 @@
 ﻿namespace lab1.Data
 {
-    internal struct Package
+    public class Package
     {
         public byte flag;
 
@@ -11,7 +11,7 @@
 
         public byte fcs;
 
-        public byte[] ToByteArray()
+        public virtual byte[] ToByteArray()
         {
             List<byte> bytes = new() { flag, destinationAddress, sourceAddress };
             

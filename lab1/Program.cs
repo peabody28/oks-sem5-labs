@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO.Ports;
+﻿using System.IO.Ports;
 
 namespace lab1
 {
@@ -7,25 +6,22 @@ namespace lab1
     {
         static void Main(string[] args)
         {
-            Node node = null;
+            ParitySelectMessage();
+            var parityName = Console.ReadLine();
+            var parity = (Parity)Enum.Parse(typeof(Parity), parityName);
 
-            if (args.Length == 0)
-            {
-                ParitySelectMessage();
+            var ports = GetFreeSerialPorts();
 
-                var parityName = Console.ReadLine();
-                var parity = (Parity)Enum.Parse(typeof(Parity), parityName);
+            Console.WriteLine("Is monitor? (1/0)");
+            var isMonitor = Convert.ToInt32(Console.ReadLine());
 
-                var ports = GetFreeSerialPorts();
+            NodeRoot nodeRoot = new NodeRoot();
+            Node producer = new Producer(ports.Item1, nodeRoot, isMonitor == 1, parity);
+            Node consumer = new Consumer(ports.Item2, nodeRoot);
 
-                node = new Producer(ports.Item1, parity);
-
-                StartConsumer(ports.Item2);
-            }
-            else
-                node = new Consumer(args[0]);
-
-            node.Do();
+            Task.Run(() => consumer.Do());
+            Thread.Sleep(200);
+            producer.Do();
         }
 
         private static void ParitySelectMessage()
@@ -42,12 +38,12 @@ namespace lab1
         {
             var serialPortNames = SerialPort.GetPortNames();
 
-            int i = 1;
-            for(; i < serialPortNames.Length; i+=2)
+            int i = 0;
+            for (; i < serialPortNames.Length; i += 2)
             {
                 try
                 {
-                    using (var node = new Node(serialPortNames[i]))
+                    using (var node = new Node(serialPortNames[i], null))
                     {
                         break;
                     }
@@ -58,34 +54,11 @@ namespace lab1
                 }
             }
 
-            int j = serialPortNames.Length - 1;
-            for (; j > i; j-=2)
-            {
-                try
-                {
-                    using (var node = new Node(serialPortNames[j]))
-                    {
-                        break;
-                    }
-                }
-                catch
-                {
-
-                }
-            }
+            int j = i - 1;
+            if (j < 0)
+                j += 6;
 
             return (serialPortNames[i], serialPortNames[j]);
-        }
-
-        private static void StartConsumer(string portName)
-        {
-            using (var p = new Process())
-            {
-                p.StartInfo.FileName = $"E:\\unik\\sem5\\oks\\Labs\\lab1\\bin\\Debug\\net7.0\\lab1.exe";
-                p.StartInfo.UseShellExecute = true;
-                p.StartInfo.Arguments = portName;
-                p.Start();
-            }
         }
     }
 }
