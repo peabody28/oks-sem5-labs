@@ -74,8 +74,8 @@
             var bytes = new List<byte>();
             var innerPackageBytes = base.ToByteArray();
 
-            bytes.Add(accessControl?.ToByte() ?? 0);
-            bytes.Add(frameStatus?.ToByte() ?? 0);
+            bytes.Add(accessControl.ToByte());
+            bytes.Add(frameStatus.ToByte());
 
             bytes.AddRange(innerPackageBytes);
 

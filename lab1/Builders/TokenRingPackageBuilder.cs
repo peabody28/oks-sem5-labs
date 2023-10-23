@@ -5,7 +5,7 @@ namespace lab1.Builders
 {
     public class TokenRingPackageBuilder : PackageBuilder
     {
-        public IEnumerable<Package> Build(int destination, string data, int senderPortNumber, AccessControl accessControl, FrameStatus frameStatus)
+        public IEnumerable<TokenRingPackage> Build(int destination, string data, int senderPortNumber, AccessControl accessControl, FrameStatus frameStatus)
         {
             var packages = new List<TokenRingPackage>();
 
@@ -27,7 +27,7 @@ namespace lab1.Builders
 
         public override TokenRingPackage Parse(byte[] packageData)
         {
-            var innerPackage = base.Parse(packageData);
+            var innerPackage = base.Parse(packageData.Skip(2).ToArray());
             var package = FromInnerPackage(innerPackage);
 
             package.accessControl = AccessControl.FromByte(packageData[0]);

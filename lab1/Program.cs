@@ -15,13 +15,9 @@ namespace lab1
             Console.WriteLine("Is monitor? (1/0)");
             var isMonitor = Convert.ToInt32(Console.ReadLine());
 
-            NodeRoot nodeRoot = new NodeRoot();
-            Node producer = new Producer(ports.Item1, nodeRoot, isMonitor == 1, parity);
-            Node consumer = new Consumer(ports.Item2, nodeRoot);
+            var node = new Node(ports.Item1, ports.Item2, isMonitor == 1, parity);
 
-            Task.Run(() => consumer.Do());
-            Thread.Sleep(200);
-            producer.Do();
+            node.Produce();
         }
 
         private static void ParitySelectMessage()
@@ -41,16 +37,20 @@ namespace lab1
             int i = 0;
             for (; i < serialPortNames.Length; i += 2)
             {
+                SerialPort serialPort = null;
                 try
                 {
-                    using (var node = new Node(serialPortNames[i], null))
-                    {
-                        break;
-                    }
+                    serialPort = new SerialPort(serialPortNames[i], 19200, Parity.None, 8, StopBits.One);
+                    serialPort.Open();
+                    break;
                 }
                 catch
                 {
 
+                }
+                finally
+                {
+                    serialPort.Dispose();
                 }
             }
 
